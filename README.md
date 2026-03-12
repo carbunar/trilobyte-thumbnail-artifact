@@ -1,101 +1,121 @@
-# Trilobyte Artifact
+# Trilobyte Thumbnail Artifact (Evaluation Companion)
 
-This repository contains a minimal reference implementation used to generate the qualitative illustration of thumbnail perturbations reported in the paper.
+This artifact accompanies the Trilobyte paper and provides a minimal, evaluation-focused reproduction package for the qualitative and measurement components of the study.
 
-## Qualitative Illustration of Thumbnail Perturbations
+It does not include operational covert-communication deployment code. Instead, it provides:
+- reproducible payload preparation methodology (Table I style)
+- thumbnail perturbation visualization (Figure 4 style)
+- session capacity aggregation logic (Table III style)
 
-The goal of this component is to show that the embedding mechanism used by Trilobyte introduces only low-magnitude visual perturbations to saved-state thumbnails.
+This aligns with common artifact practices in censorship-resistant systems research.
 
-Specifically, the repository contains:
+## Repository Structure
 
-- an example original game thumbnail (`cover.png`)
-- a corresponding stego thumbnail (`cover_stego.png`)
-- a visualization script (`src/heatmap_gen.py`) that computes an amplified pixel-difference heatmap and summary statistics
-- a reference embedding script (`src/thumbnail_channel.py`) used for the qualitative example
+src/
+    session_capacity.py
+    crypto.py
+    analysis/
+        heatmap_gen.py
 
-Running the heatmap script produces:
+payload_tools/
+    make_test_payloads.py
+    encrypt_payloads.py
+    hash_compare.py
 
-- a side-by-side comparison figure
-- mean absolute pixel difference
-- maximum channel perturbation
-- number of pixels modified
+examples/
+    sample_payloads/
+        plain/
+        encrypted_plain/
+        manifests/
+    sample_results/
+        session_capacity_input.csv
 
-This qualitative analysis supports the plausibility requirement of the system design: saved-state artifacts modified by the embedding mechanism remain perceptually consistent with ordinary gameplay artifacts at normal viewing scale.
+NOTE:
+If your local structure is:
+examples/sample_payloads/sample_results/
+then adjust paths in the commands accordingly.
 
-> **Important**
->
-> This prototype is intended as an illustrative artifact. It does not reproduce the full Trilobyte system pipeline or its end-to-end threat model.
+## Dependencies
 
-## Environment
+Install required Python packages:
 
-The qualitative thumbnail example was reproduced with **Python 3.10.11**. We recommend using **Python 3.10.11** for best compatibility with the reproduced environment.
+pip install cryptography numpy pillow scikit-image
 
-## Setup
+If using SteganoGAN components:
 
-Create and activate a Python 3.10 virtual environment.
+pip install torch torchvision
 
-### Windows PowerShell
+## 1. Payload Generation (Table I Methodology)
 
-```powershell
-py -3.10 -m venv .venv310
-.\\.venv310\\Scripts\\Activate.ps1
-python --version
-```
+This reproduces the experimental methodology used to test whether platforms accept, store, and return hidden data.
 
-The Python version should report `Python 3.10.11`.
+Step 1 — Generate test payloads
 
-Then install the required packages:
+python payload_tools/make_test_payloads.py --outdir examples/sample_payloads/plain --count 5 --compress
 
-```powershell
-python -m pip install --upgrade pip setuptools wheel
-pip install torch==1.13.1 pillow "numpy<2" matplotlib imageio tqdm steganogan
-```
+This creates synthetic placeholder payloads. Original sensitive keyword datasets are not required.
 
-## Patched SteganoGAN Dependency
+Step 2 — Encrypt payloads
 
-The qualitative thumbnail illustration uses SteganoGAN as the embedding backend.
+python payload_tools/encrypt_payloads.py --input-dir examples/sample_payloads/plain --outdir examples/sample_payloads/encrypted_plain --master-key-hex 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --input-kind plain
 
-In the reproduced environment used for this artifact, the public SteganoGAN package required a small compatibility patch to `models.py`. This repository includes that patched file as:
+Step 3 — Verify round-trip integrity
 
-```text
-compat/steganogan_models.py
-```
+After manually uploading and downloading files through gaming platforms:
 
-After installing `steganogan`, replace the installed `models.py` with the patched version included in this repository.
+python payload_tools/hash_compare.py --dir-a examples/sample_payloads/plain --dir-b path_to_downloaded_files
 
-### Windows PowerShell Example
+## 2. Thumbnail Perturbation Visualization (Figure 4)
 
-```powershell
-Copy-Item .\\compat\\steganogan_models.py .\\.venv310\\Lib\\site-packages\\steganogan\\models.py
-```
+Heatmap visualization code is located at:
 
-This patch is only needed to run the qualitative thumbnail example included in this artifact.
+src/analysis/heatmap_gen.py
 
-The patched file is derived from SteganoGAN. Please preserve the original license and attribution information. See:
+Example:
 
-```text
-third_party_licenses/SteganoGAN-MIT-LICENSE.txt
-```
+python src/analysis/heatmap_gen.py --cover examples/thumbnails/original.png --stego examples/thumbnails/stego.png --out examples/thumbnails/heatmap.png
 
-## Generating the Qualitative Figure
+This reproduces pixel-difference heatmaps, PSNR, and SSIM metrics.
 
-To generate the pixel-difference heatmap and the side-by-side comparison figure, run:
+## 3. Session Capacity Aggregation (Table III)
 
-```powershell
-python src\\heatmap_gen.py
-```
+Input file:
 
-This produces artifacts such as:
+examples/sample_results/session_capacity_input.csv
 
-- `cover_diff_heatmap.png`
-- `cover_comparison.png`
+Run:
 
-These files can be used directly in the paper to illustrate thumbnail perturbations.
+python src/session_capacity.py --input-csv examples/sample_results/session_capacity_input.csv --out-csv examples/sample_results/session_capacity_output.csv --unit kib
 
-## Notes on Interpretation
+If your repository uses nested structure:
 
-The qualitative figure is intended to illustrate low perceptual distortion. In particular, the side-by-side visualization is used to show that:
+examples/sample_payloads/sample_results/session_capacity_input.csv
 
-- the modified thumbnail remains visually similar to the original at normal viewing scale
-- perturbations become visible only after amplification in the heatmap
-- the embedding process is consistent with the paper's plausibility argument for hidden-state communication
+then run:
+
+python src/session_capacity.py --input-csv examples/sample_payloads/sample_results/session_capacity_input.csv --out-csv examples/sample_payloads/sample_results/session_capacity_output.csv --unit kib
+
+## Artifact Scope
+
+This artifact reproduces:
+- payload preparation methodology
+- thumbnail embedding visual evaluation
+- capacity aggregation logic
+
+It does not include:
+- automated gameplay pipelines
+- platform synchronization tooling
+- operational covert communication code
+
+These components depend on proprietary ecosystems and user-behavior traces.
+
+## Reproducibility Notes
+
+- Synthetic payloads replace original sensitive datasets
+- Capacity values are transcribed from reported measurements
+- Thumbnail visualization is fully reproducible
+- Unit conventions may differ slightly due to KB vs KiB rounding
+
+## Citation
+
+If you use this artifact, please cite the Trilobyte paper.
