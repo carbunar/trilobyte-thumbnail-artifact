@@ -94,9 +94,7 @@ These files can be used directly in the paper to illustrate thumbnail perturbati
 
 ## Notes on Interpretation
 
-The qualitative figure is intended to illustrate low perceptual distortion, not to serve as a full end-to-end evaluation of the complete Trilobyte system.
-
-In particular, the side-by-side visualization is used to show that:
+The qualitative figure is intended to illustrate low perceptual distortion. In particular, the side-by-side visualization is used to show that:
 
 - the modified thumbnail remains visually similar to the original at normal viewing scale
 - perturbations become visible only after amplification in the heatmap
