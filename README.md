@@ -180,6 +180,12 @@ This release scope balances reproducibility with responsible disclosure.
 
 ---------------------------------------------------------------------
 
+## License
+
+This repository is licensed under the MIT License. See the `LICENSE` file for details.
+
+---------------------------------------------------------------------
+
 ## Citation
 
 If you use this artifact, please cite the Trilobyte paper.
